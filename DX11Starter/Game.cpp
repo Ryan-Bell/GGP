@@ -43,6 +43,11 @@ Game::~Game()
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
 	delete pixelShader;
+
+	for (int i = 0; i < 6; i++) {
+		delete meshes[i];
+	}
+	free(meshes);
 }
 
 // --------------------------------------------------------
@@ -129,23 +134,29 @@ void Game::CreateMatrices()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	// Create some temporary variables to represent colors
-	// - Not necessary, just makes things more readable
-	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	meshes = (Mesh**)malloc(sizeof(Mesh*) * 6);
 
-	Vertex vertices[] =
-	{
-		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), red },
-		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), blue },
-		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), green },
-	};
+	for (int i = 0; i < 6; i++) {
+		//colors
+		XMFLOAT4 red = XMFLOAT4(i/6.f, 0.0f, 0.0f, 1.0f);
+		XMFLOAT4 green = XMFLOAT4(0.0f, i/6.f, 0.0f, 1.0f);
+		XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, i/6.f, 1.0f);
 
-	unsigned int indices[] = { 0, 1, 2 };
+		//positioning
+		float scale = 0.5f;
+		float shiftScale = 2.f;
+		float startingX = -2.5f;
+		Vertex vertices[] =
+		{
+			{ XMFLOAT3(startingX + (i * shiftScale + 0.0f) * scale, 1.0f * scale, 0.0f * scale), red },
+			{ XMFLOAT3(startingX + (i * shiftScale + 1.5f) * scale, -1.0f * scale, +0.0f * scale), blue },
+			{ XMFLOAT3(startingX + (i * shiftScale - 1.5f) * scale, -1.0f * scale, +0.0f * scale), green },
+		};
 
-	mesh1 = new Mesh(&vertices[0], 3, &indices[0], 3, device);
-	
+		unsigned int indices[] = { 0, 1, 2 };
+		
+		meshes[i] = new Mesh(&vertices[0], 3, &indices[0], 3, device);
+	}
 }
 
 
@@ -221,20 +232,21 @@ void Game::Draw(float deltaTime, float totalTime)
 	//    have different geometry.
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
-	context->IASetVertexBuffers(0, 1, mesh1->GetVertexBufferAddress(), &stride, &offset);
-	context->IASetIndexBuffer(mesh1->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+	for (int i = 5; i >= 0; i--) {
+		context->IASetVertexBuffers(0, 1, meshes[i]->GetVertexBufferAddress(), &stride, &offset);
+		context->IASetIndexBuffer(meshes[i]->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
-	// Finally do the actual drawing
-	//  - Do this ONCE PER OBJECT you intend to draw
-	//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-	//     vertices in the currently set VERTEX BUFFER
-	context->DrawIndexed(
-		mesh1->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-		0,     // Offset to the first index we want to use
-		0);    // Offset to add to each index when looking up vertices
+		// Finally do the actual drawing
+		//  - Do this ONCE PER OBJECT you intend to draw
+		//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
+		//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
+		//     vertices in the currently set VERTEX BUFFER
+		context->DrawIndexed(
+			meshes[i]->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			0,     // Offset to the first index we want to use
+			0);    // Offset to add to each index when looking up vertices
 
-
+	}
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
