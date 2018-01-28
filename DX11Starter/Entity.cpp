@@ -3,11 +3,13 @@
 Entity::Entity(Mesh* mesh)
 {
 	this->mesh = mesh;
+	position = DirectX::XMFLOAT3(0, 0, 0);
+	scale = DirectX::XMFLOAT3(1, 1, 1);
+	rotation = DirectX::XMFLOAT3(0, 0, 0);
+	outdatedMatrix = true;
 }
 
-Entity::~Entity()
-{
-}
+Entity::~Entity() {}
 
 DirectX::XMFLOAT3 Entity::GetPosition()
 {

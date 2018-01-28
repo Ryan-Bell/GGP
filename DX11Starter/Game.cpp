@@ -43,11 +43,11 @@ Game::~Game()
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
 	delete pixelShader;
-
+	delete mesh;
 	for (int i = 0; i < 6; i++) {
-		delete meshes[i];
+		delete entities[i];
 	}
-	free(meshes);
+	free(entities);
 }
 
 // --------------------------------------------------------
@@ -92,15 +92,6 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateMatrices()
 {
-	// Set up world matrix
-	// - In an actual game, each object will need one of these and they should
-	//    update when/if the object moves (every frame)
-	// - You'll notice a "transpose" happening below, which is redundant for
-	//    an identity matrix.  This is just to show that HLSL expects a different
-	//    matrix (column major vs row major) than the DirectX Math library
-	XMMATRIX W = XMMatrixIdentity();
-	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W)); // Transpose for HLSL!
-
 	// Create the View matrix
 	// - In an actual game, recreate this matrix every time the camera 
 	//    moves (potentially every frame)
@@ -134,28 +125,28 @@ void Game::CreateMatrices()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	meshes = (Mesh**)malloc(sizeof(Mesh*) * 6);
+	entities = (Entity**)malloc(sizeof(Entity*) * 6);
+	
+	//colors
+	XMFLOAT4 red = XMFLOAT4(1.f, 0.0f, 0.0f, 1.0f);
+	XMFLOAT4 green = XMFLOAT4(0.0f, 1.f, 0.0f, 1.0f);
+	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.f, 1.0f);
+
+	//positioning
+	Vertex vertices[] =
+	{
+		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), red },
+		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), blue },
+		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), green },
+	};
+
+	unsigned int indices[] = { 0, 1, 2 };
+	mesh = new Mesh(vertices, 3, indices, 3, device);
 
 	for (int i = 0; i < 6; i++) {
-		//colors
-		XMFLOAT4 red = XMFLOAT4(i/6.f, 0.0f, 0.0f, 1.0f);
-		XMFLOAT4 green = XMFLOAT4(0.0f, i/6.f, 0.0f, 1.0f);
-		XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, i/6.f, 1.0f);
-
-		//positioning
-		float scale = 0.5f;
-		float shiftScale = 2.f;
-		float startingX = -2.5f;
-		Vertex vertices[] =
-		{
-			{ XMFLOAT3(startingX + (i * shiftScale + 0.0f) * scale, 1.0f * scale, 0.0f * scale), red },
-			{ XMFLOAT3(startingX + (i * shiftScale + 1.5f) * scale, -1.0f * scale, +0.0f * scale), blue },
-			{ XMFLOAT3(startingX + (i * shiftScale - 1.5f) * scale, -1.0f * scale, +0.0f * scale), green },
-		};
-
-		unsigned int indices[] = { 0, 1, 2 };
-		
-		meshes[i] = new Mesh(&vertices[0], 3, &indices[0], 3, device);
+		entities[i] = new Entity(mesh);
+		entities[i]->SetPosition(-2.5f + i, 0, 0)->SetScale(0.5f, 0.5f, 0.5f); 
+		//TODO change starting pos/scale etc
 	}
 }
 
@@ -183,6 +174,10 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	for (int i = 5; i >= 0; i--) {
+		float newScale = abs(sin(totalTime));
+		entities[i]->SetScale(newScale, newScale, newScale);
+	}
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
@@ -206,19 +201,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-	// Send data to shader variables
-	//  - Do this ONCE PER OBJECT you're drawing
-	//  - This is actually a complex process of copying data to a local buffer
-	//    and then copying that entire buffer to the GPU.  
-	//  - The "SimpleShader" class handles all of that for you.
-	vertexShader->SetMatrix4x4("world", worldMatrix);
-	vertexShader->SetMatrix4x4("view", viewMatrix);
-	vertexShader->SetMatrix4x4("projection", projectionMatrix);
 
-	// Once you've set all of the data you care to change for
-	// the next draw call, you need to actually send it to the GPU
-	//  - If you skip this, the "SetMatrix" calls above won't make it to the GPU!
-	vertexShader->CopyAllBufferData();
 
 	// Set the vertex and pixel shaders to use for the next Draw() command
 	//  - These don't technically need to be set every frame...YET
@@ -233,8 +216,22 @@ void Game::Draw(float deltaTime, float totalTime)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	for (int i = 5; i >= 0; i--) {
-		context->IASetVertexBuffers(0, 1, meshes[i]->GetVertexBufferAddress(), &stride, &offset);
-		context->IASetIndexBuffer(meshes[i]->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		// Send data to shader variables
+		//  - Do this ONCE PER OBJECT you're drawing
+		//  - This is actually a complex process of copying data to a local buffer
+		//    and then copying that entire buffer to the GPU.  
+		//  - The "SimpleShader" class handles all of that for you.
+		vertexShader->SetMatrix4x4("world", entities[i]->GetWorldMatrix());
+		vertexShader->SetMatrix4x4("view", viewMatrix);
+		vertexShader->SetMatrix4x4("projection", projectionMatrix);
+
+		// Once you've set all of the data you care to change for
+		// the next draw call, you need to actually send it to the GPU
+		//  - If you skip this, the "SetMatrix" calls above won't make it to the GPU!
+		vertexShader->CopyAllBufferData();
+
+		context->IASetVertexBuffers(0, 1, entities[i]->mesh->GetVertexBufferAddress(), &stride, &offset);
+		context->IASetIndexBuffer(entities[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		// Finally do the actual drawing
 		//  - Do this ONCE PER OBJECT you intend to draw
@@ -242,7 +239,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 		//     vertices in the currently set VERTEX BUFFER
 		context->DrawIndexed(
-			meshes[i]->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			entities[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 
