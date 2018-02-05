@@ -125,7 +125,7 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
-	camera->SetSize(width, height);
+	camera->CreateProjection(width, height);
 
 }
 
