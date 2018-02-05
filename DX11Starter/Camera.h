@@ -4,20 +4,43 @@
 
 class Camera {
 public:
+	// Contruct/Destruct
 	Camera(float width, float height);
+	Camera(float width, float height, DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir);
+	Camera(float width, float height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
 	~Camera();
-	void CreateProjection(float width, float height);
-	void CreateView(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir, DirectX::XMFLOAT3 up);
-	void CreateView(DirectX::XMVECTOR pos, DirectX::XMVECTOR dir, DirectX::XMVECTOR up);
+	void init(float width, float height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
+
+	// Getters/Setters
+	Camera* SetPosition(DirectX::XMFLOAT3 pos);
+	Camera* SetDirection(DirectX::XMFLOAT3 dir);
+	Camera* SetXRotation(float xRotation);
+	Camera* SetYRotation(float yRotation);
+
+	DirectX::XMFLOAT3 GetPosition();
+	DirectX::XMFLOAT3 GetDirection();
+	float GetXRotation();
+	float GetYRotation();
+
 	Camera* Update();
 	DirectX::XMFLOAT4X4 GetViewMatrix();
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
+
+	void CreateProjection(float width, float height);
 private:
+	// Matrix Creations
+	
+	void CreateView(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir);
+	void CreateView(DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
+
+	// Internal Data
 	DirectX::XMFLOAT3 cameraPosition;
 	DirectX::XMFLOAT3 cameraDirection;
 	float xRotation;
 	float yRotation;
 	bool outdatedMatrix;
+
+	DirectX::XMVECTOR up;
 
 	// The matrices to go from model space to screen space
 	//DirectX::XMFLOAT4X4 worldMatrix;
