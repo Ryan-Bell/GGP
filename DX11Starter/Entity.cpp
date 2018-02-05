@@ -6,7 +6,7 @@ Entity::Entity(Mesh* mesh)
 	position = DirectX::XMFLOAT3(0, 0, 0);
 	scale = DirectX::XMFLOAT3(1, 1, 1);
 	rotation = DirectX::XMFLOAT3(0, 0, 0);
-	outdatedMatrix = true;
+	CalculateWorldMatrix();
 }
 
 Entity::~Entity() {}
@@ -49,35 +49,32 @@ Entity * Entity::SetRotation(DirectX::XMFLOAT3 rotation)
 
 Entity * Entity::SetPosition(float x, float y, float z)
 {
-	outdatedMatrix = true;
-	this->position = DirectX::XMFLOAT3(x, y, z);
-	return this;
+	return SetPosition(DirectX::XMFLOAT3(x, y, z));
 }
 
 Entity * Entity::SetScale(float x, float y, float z)
 {
-	outdatedMatrix = true;
-	this->scale = DirectX::XMFLOAT3(x, y, z);
-	return this;
+	return SetScale(DirectX::XMFLOAT3(x, y, z));
 }
 
 Entity * Entity::SetRotation(float x, float y, float z)
 {
-	outdatedMatrix = true;
-	this->rotation = DirectX::XMFLOAT3(x, y, z);
-	return this;
+	return SetRotation(DirectX::XMFLOAT3(x, y, z));
 }
 
 Entity * Entity::Move(DirectX::XMFLOAT3 movement)
 {
-	//TODO
+	//TODO should this also be delayed until world mat calc?
+	DirectX::XMStoreFloat3(&position, DirectX::XMVectorAdd(
+		DirectX::XMLoadFloat3(&position), 
+		DirectX::XMLoadFloat3(&movement)
+	));
 	return this;
 }
 
 Entity * Entity::Move(float x, float y, float z)
 {
-	//TODO
-	return this;
+	return Move(DirectX::XMFLOAT3(x, y, z));
 }
 
 Entity * Entity::MoveForward(float distance)
@@ -89,12 +86,17 @@ Entity * Entity::MoveForward(float distance)
 DirectX::XMFLOAT4X4 Entity::GetWorldMatrix()
 {
 	if (outdatedMatrix) {
-		DirectX::XMMATRIX tr = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
-		DirectX::XMMATRIX ro = DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
-		DirectX::XMMATRIX sc = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);
-
-		XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(sc * ro * tr));
+		CalculateWorldMatrix();
 		outdatedMatrix = false;
 	}
 	return worldMatrix;
+}
+
+void Entity::CalculateWorldMatrix()
+{
+	DirectX::XMMATRIX tr = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
+	DirectX::XMMATRIX ro = DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+	DirectX::XMMATRIX sc = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);
+
+	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(sc * ro * tr));
 }

@@ -20,7 +20,6 @@ public:
 	Entity* SetPosition(float x, float y, float z);
 	Entity* SetScale(float x, float y, float z);
 	Entity* SetRotation(float x, float y, float z);
-	//TODO: ? component-wise setting of rotation?
 
 	Entity* Move(DirectX::XMFLOAT3 movement);
 	Entity* Move(float x, float y, float z);
@@ -31,9 +30,10 @@ public:
 private:
 	DirectX::XMFLOAT3 position;
 	DirectX::XMFLOAT3 scale;
-	//TODO Quaternions
+	//TODO Quaternions?
 	DirectX::XMFLOAT3 rotation;
 	
 	bool outdatedMatrix;
 	DirectX::XMFLOAT4X4 worldMatrix;
+	void CalculateWorldMatrix();
 };
