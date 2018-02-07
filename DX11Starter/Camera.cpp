@@ -20,9 +20,13 @@ Camera::Camera(float width, float height, DirectX::XMVECTOR pos, DirectX::XMVECT
 	init(width, height, pos, dir);
 }
 void Camera::init(float width, float height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir) {
-	up = DirectX::XMVectorSet(0, 1, 0, 0);
+	DirectX::XMStoreFloat3(&cameraDirection, dir);
+	DirectX::XMStoreFloat3(&cameraPosition, pos);
+
 	CreateView(pos, dir);
 	CreateProjection(width, height);
+	cameraSpeed = 3;
+	cameraRotationSpeed = 0.002f;
 }
 Camera::~Camera()
 {
@@ -36,6 +40,8 @@ Camera::~Camera()
 // --------------------------------------------------------
 void Camera::CreateProjection(float width, float height)
 {
+	this->width = width;
+	this->height = height;
 	// Update our projection matrix since the window size changed
 	DirectX::XMMATRIX P = DirectX::XMMatrixPerspectiveFovLH(
 		0.25f * 3.1415926535f,	// Field of View Angle
@@ -62,7 +68,7 @@ void Camera::CreateView(DirectX::XMVECTOR pos, DirectX::XMVECTOR dir) {
 	DirectX::XMMATRIX V = DirectX::XMMatrixLookToLH(
 		pos,     // The position of the "camera"
 		dir,     // Direction the camera is looking
-		up);     // "Up" direction in 3D space (prevents roll)
+		DirectX::XMVectorSet(0, 1, 0, 0));     // "Up" direction in 3D space (prevents roll)
 	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(V)); // Transpose for HLSL!
 }
 #pragma endregion
@@ -116,11 +122,65 @@ float Camera::GetYRotation()
 }
 #pragma endregion
 
-Camera * Camera::Update()
+Camera * Camera::Update(float deltaTime, float totalTime)
 {
+	DirectX::XMVECTOR cameraDirectionVector = DirectX::XMVector3Rotate(DirectX::XMVectorSet(0, 0, 1, 0), DirectX::XMQuaternionRotationRollPitchYaw(-cameraDirection.y, cameraDirection.x, 0));
+
+	//DirectX::XMVECTOR cameraDirectionVector = DirectX::XMLoadFloat3(&cameraDirection);
+	cameraDirectionVector = DirectX::XMVector4Normalize(cameraDirectionVector);
+	DirectX::XMVECTOR cameraDirectionLeftVector = DirectX::XMVector3Cross(cameraDirectionVector, DirectX::XMVectorSet(0, 1, 0, 0));
+
+	float scale = deltaTime * cameraSpeed;
+	cameraDirectionVector = DirectX::XMVectorScale(cameraDirectionVector, scale);
+	cameraDirectionLeftVector = DirectX::XMVectorScale(cameraDirectionLeftVector, scale);
+
+	DirectX::XMVECTOR cameraPositionVector = DirectX::XMLoadFloat3(&cameraPosition);
+
+	//Movement forward and back along direction vector
+	if (GetAsyncKeyState('W') & 0x8000) {
+		DirectX::XMStoreFloat3(&cameraPosition, DirectX::XMVectorAdd(cameraPositionVector, cameraDirectionVector));
+		outdatedMatrix = true;
+	}
+	if (GetAsyncKeyState('S') & 0x8000) {
+		DirectX::XMStoreFloat3(&cameraPosition, DirectX::XMVectorSubtract(cameraPositionVector, cameraDirectionVector));
+		outdatedMatrix = true;
+	}
+
+	//Movement left and right based on direction vector
+	if (GetAsyncKeyState('A') & 0x8000) {
+		DirectX::XMStoreFloat3(&cameraPosition, DirectX::XMVectorAdd(cameraPositionVector, cameraDirectionLeftVector));
+		outdatedMatrix = true;
+	}
+	if (GetAsyncKeyState('D') & 0x8000) {
+		DirectX::XMStoreFloat3(&cameraPosition, DirectX::XMVectorSubtract(cameraPositionVector, cameraDirectionLeftVector));
+		outdatedMatrix = true;
+	}
+	//Movement up and down in world coords
+	if (GetAsyncKeyState('Q') & 0x8000) {
+		cameraPosition.y -= deltaTime * cameraSpeed;
+		outdatedMatrix = true;
+	}
+	if (GetAsyncKeyState('E') & 0x8000) {
+		cameraPosition.y += deltaTime * cameraSpeed;
+		outdatedMatrix = true;
+	}
+	
 	if (outdatedMatrix) {
 		CreateView(cameraPosition, cameraDirection);
 	}
+	return this;
+}
+
+Camera* Camera::OnMouseMove(float prex, float prey, float x, float y) {
+	float screenCenterX = width / 2;
+	float screenCenterY = height / 2;
+	
+	float deltax = x - prex;
+	float deltay = y - prey;
+	deltax *= cameraRotationSpeed;
+	deltay *= cameraRotationSpeed;
+	cameraDirection.x += deltax;
+	cameraDirection.y -= deltay;
 	return this;
 }
 

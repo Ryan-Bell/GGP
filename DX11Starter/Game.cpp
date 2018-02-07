@@ -63,6 +63,8 @@ void Game::Init()
 	LoadShaders();
 	CreateBasicGeometry();
 	camera = new Camera(width, height);
+	prevMousePos.x = width/2;
+	prevMousePos.y = height/2;
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -135,9 +137,11 @@ void Game::OnResize()
 void Game::Update(float deltaTime, float totalTime)
 {
 	for (int i = 5; i >= 0; i--) {
-		float newScale = abs(sin(totalTime));
+		//float newScale = abs(sin(totalTime));
+		float newScale = 1;
 		entities[i]->SetScale(newScale, newScale, newScale);
 	}
+	camera->Update(deltaTime, totalTime);
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
@@ -253,7 +257,7 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
 	// Add any custom code here...
-
+	camera->OnMouseMove(prevMousePos.x, prevMousePos.y, x, y);
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
 	prevMousePos.y = y;

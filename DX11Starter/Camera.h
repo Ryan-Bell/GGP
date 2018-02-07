@@ -22,9 +22,13 @@ public:
 	float GetXRotation();
 	float GetYRotation();
 
-	Camera* Update();
+	Camera* Update(float deltaTime, float totalTime);
+	Camera* OnMouseMove(float prex, float prey, float x, float y);
 	DirectX::XMFLOAT4X4 GetViewMatrix();
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
+
+	float cameraSpeed;
+	float cameraRotationSpeed;
 
 	void CreateProjection(float width, float height);
 private:
@@ -38,12 +42,12 @@ private:
 	DirectX::XMFLOAT3 cameraDirection;
 	float xRotation;
 	float yRotation;
+	float width;
+	float height;
 	bool outdatedMatrix;
-
-	DirectX::XMVECTOR up;
 
 	// The matrices to go from model space to screen space
 	//DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT4X4 viewMatrix;
 	DirectX::XMFLOAT4X4 projectionMatrix;
-};
+}; 
