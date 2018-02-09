@@ -7,6 +7,15 @@
 #include "Entity.h"
 #include "Camera.h"
 
+struct BasicGeometry {
+	Mesh* cone;
+	Mesh* cube;
+	Mesh* cylinder;
+	Mesh* helix;
+	Mesh* sphere;
+	Mesh* torus;
+};
+
 class Game 
 	: public DXCore
 {
@@ -40,7 +49,8 @@ private:
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
-	Mesh* mesh;
+
+	BasicGeometry basicGeometry;
 	Material* material;
 	Entity** entities;
 	Camera* camera;

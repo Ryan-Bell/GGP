@@ -43,9 +43,16 @@ Game::~Game()
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
 	delete pixelShader;
-	delete mesh;
 	delete material;
 	delete camera;
+	
+	delete basicGeometry.cone;
+	delete basicGeometry.cube;
+	delete basicGeometry.cylinder;
+	delete basicGeometry.helix;
+	delete basicGeometry.sphere;
+	delete basicGeometry.torus;
+
 	for (int i = 0; i < 6; i++) {
 		delete entities[i];
 	}
@@ -93,29 +100,24 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	entities = (Entity**)malloc(sizeof(Entity*) * 6);
+	//TODO: autoload all assets in folder and store as filename
+	basicGeometry.cone		= new Mesh("../../Assets/Models/cone.obj",		device);
+	basicGeometry.cube		= new Mesh("../../Assets/Models/cube.obj",		device);
+	basicGeometry.cylinder	= new Mesh("../../Assets/Models/cylinder.obj",	device);
+	basicGeometry.helix		= new Mesh("../../Assets/Models/helix.obj",		device);
+	basicGeometry.sphere	= new Mesh("../../Assets/Models/sphere.obj",	device);
+	basicGeometry.torus		= new Mesh("../../Assets/Models/torus.obj",		device);
+
+	const int ENTITY_COUNT = 6;
+	entities = (Entity**)malloc(sizeof(Entity*) * ENTITY_COUNT);
 	
-	//colors
-	XMFLOAT4 red = XMFLOAT4(1.f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 1.f, 0.0f, 1.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.f, 1.0f);
-
-	//positioning
-	Vertex vertices[] =
-	{
-		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0)},
-		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0)},
-		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0)},
-	};
-
-	unsigned int indices[] = { 0, 1, 2 };
 	material = new Material(vertexShader, pixelShader);
-	mesh = new Mesh(vertices, 3, indices, 3, device);
 
-	for (int i = 0; i < 6; i++) {
-		entities[i] = new Entity(mesh, material);
+	Mesh** basicGeoSubPointer = (Mesh**)&basicGeometry;
+	for (int i = 0; i < ENTITY_COUNT; i++) {
+		entities[i] = new Entity(*basicGeoSubPointer, material);
 		entities[i]->SetPosition(-2.5f + i, 0, 0)->SetScale(0.5f, 0.5f, 0.5f); 
-		//TODO change starting pos/scale etc
+		basicGeoSubPointer++;
 	}
 }
 
@@ -130,7 +132,6 @@ void Game::OnResize()
 	DXCore::OnResize();
 
 	camera->CreateProjection(width, height);
-
 }
 
 // --------------------------------------------------------
@@ -138,12 +139,8 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	for (int i = 5; i >= 0; i--) {
-		//float newScale = abs(sin(totalTime));
-		float newScale = 1;
-		entities[i]->SetScale(newScale, newScale, newScale);
-	}
 	camera->Update(deltaTime, totalTime);
+
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
