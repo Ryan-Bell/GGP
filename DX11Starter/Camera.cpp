@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 #pragma region Construct/Destruct
-Camera::Camera(float width, float height)
+Camera::Camera(int width, int height)
 {
 	//Default values for camera positioning
 	DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, -5, 0);
@@ -10,16 +10,16 @@ Camera::Camera(float width, float height)
 	init(width, height, pos, dir);
 }
 
-Camera::Camera(float width, float height, DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir)
+Camera::Camera(int width, int height, DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir)
 {
 	init(width, height, DirectX::XMLoadFloat3(&pos), DirectX::XMLoadFloat3(&dir));
 }
 
-Camera::Camera(float width, float height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir)
+Camera::Camera(int width, int height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir)
 {
 	init(width, height, pos, dir);
 }
-void Camera::init(float width, float height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir) {
+void Camera::init(int width, int height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir) {
 	DirectX::XMStoreFloat3(&cameraDirection, dir);
 	DirectX::XMStoreFloat3(&cameraPosition, pos);
 
@@ -38,7 +38,7 @@ Camera::~Camera()
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
 // --------------------------------------------------------
-void Camera::CreateProjection(float width, float height)
+void Camera::CreateProjection(int width, int height)
 {
 	this->width = width;
 	this->height = height;
@@ -171,12 +171,9 @@ Camera * Camera::Update(float deltaTime, float totalTime)
 	return this;
 }
 
-Camera* Camera::OnMouseMove(float prex, float prey, float x, float y) {
-	float screenCenterX = width / 2;
-	float screenCenterY = height / 2;
-	
-	float deltax = x - prex;
-	float deltay = y - prey;
+Camera* Camera::OnMouseMove(int prex, int prey, int x, int y) {
+	float deltax = (float)x - prex;
+	float deltay = (float)y - prey;
 	deltax *= cameraRotationSpeed;
 	deltay *= cameraRotationSpeed;
 	cameraDirection.x += deltax;

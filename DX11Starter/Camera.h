@@ -5,11 +5,11 @@
 class Camera {
 public:
 	// Contruct/Destruct
-	Camera(float width, float height);
-	Camera(float width, float height, DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir);
-	Camera(float width, float height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
+	Camera(int width, int height);
+	Camera(int width, int height, DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir);
+	Camera(int width, int height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
 	~Camera();
-	void init(float width, float height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
+	void init(int width, int height, DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
 
 	// Getters/Setters
 	Camera* SetPosition(DirectX::XMFLOAT3 pos);
@@ -23,14 +23,14 @@ public:
 	float GetYRotation();
 
 	Camera* Update(float deltaTime, float totalTime);
-	Camera* OnMouseMove(float prex, float prey, float x, float y);
+	Camera* OnMouseMove(int prex, int prey, int x, int y);
 	DirectX::XMFLOAT4X4 GetViewMatrix();
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
 
 	float cameraSpeed;
 	float cameraRotationSpeed;
 
-	void CreateProjection(float width, float height);
+	void CreateProjection(int width, int height);
 private:
 	// Matrix Creations
 	
@@ -42,8 +42,8 @@ private:
 	DirectX::XMFLOAT3 cameraDirection;
 	float xRotation;
 	float yRotation;
-	float width;
-	float height;
+	int width;
+	int height;
 	bool outdatedMatrix;
 
 	// The matrices to go from model space to screen space
