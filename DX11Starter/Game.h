@@ -41,6 +41,7 @@ private:
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
 	Mesh* mesh;
+	Material* material;
 	Entity** entities;
 	Camera* camera;
 };

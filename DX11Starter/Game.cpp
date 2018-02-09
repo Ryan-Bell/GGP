@@ -44,6 +44,7 @@ Game::~Game()
 	delete vertexShader;
 	delete pixelShader;
 	delete mesh;
+	delete material;
 	delete camera;
 	for (int i = 0; i < 6; i++) {
 		delete entities[i];
@@ -108,10 +109,11 @@ void Game::CreateBasicGeometry()
 	};
 
 	unsigned int indices[] = { 0, 1, 2 };
+	material = new Material(vertexShader, pixelShader);
 	mesh = new Mesh(vertices, 3, indices, 3, device);
 
 	for (int i = 0; i < 6; i++) {
-		entities[i] = new Entity(mesh);
+		entities[i] = new Entity(mesh, material);
 		entities[i]->SetPosition(-2.5f + i, 0, 0)->SetScale(0.5f, 0.5f, 0.5f); 
 		//TODO change starting pos/scale etc
 	}
@@ -165,35 +167,13 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-
-
-	// Set the vertex and pixel shaders to use for the next Draw() command
-	//  - These don't technically need to be set every frame...YET
-	//  - Once you start applying different shaders to different objects,
-	//    you'll need to swap the current shaders before each draw
-	vertexShader->SetShader();
-	pixelShader->SetShader();
-
 	// Set buffers in the input assembler
 	//  - Do this ONCE PER OBJECT you're drawing, since each object might
 	//    have different geometry.
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	for (int i = 5; i >= 0; i--) {
-		// Send data to shader variables
-		//  - Do this ONCE PER OBJECT you're drawing
-		//  - This is actually a complex process of copying data to a local buffer
-		//    and then copying that entire buffer to the GPU.  
-		//  - The "SimpleShader" class handles all of that for you.
-		vertexShader->SetMatrix4x4("world", entities[i]->GetWorldMatrix());
-		vertexShader->SetMatrix4x4("view", camera->GetViewMatrix());
-		vertexShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
-
-		// Once you've set all of the data you care to change for
-		// the next draw call, you need to actually send it to the GPU
-		//  - If you skip this, the "SetMatrix" calls above won't make it to the GPU!
-		vertexShader->CopyAllBufferData();
-
+		entities[i]->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix());
 		context->IASetVertexBuffers(0, 1, entities[i]->mesh->GetVertexBufferAddress(), &stride, &offset);
 		context->IASetIndexBuffer(entities[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 

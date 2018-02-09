@@ -2,11 +2,12 @@
 #include "DXCore.h"
 #include <DirectXMath.h>
 #include "Mesh.h"
+#include "Material.h"
 //TODO ? should there be an option to force sets to calculate immediately
 class Entity
 {
 public:
-	Entity(Mesh* mesh);
+	Entity(Mesh* mesh, Material* material);
 	~Entity();
 
 	// Getters and Setters
@@ -25,7 +26,10 @@ public:
 	Entity* Move(float x, float y, float z);
 	Entity* MoveForward(float distance);
 
+	Entity* PrepareMaterial(DirectX::XMFLOAT4X4 viewMatrix, DirectX::XMFLOAT4X4 projectionMatrix);
+
 	Mesh* mesh = nullptr;
+	Material* material = nullptr;
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
 private:
 	DirectX::XMFLOAT3 position;
