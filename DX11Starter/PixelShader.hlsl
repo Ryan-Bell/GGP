@@ -38,7 +38,7 @@ struct VertexToPixel
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	// normalize normal vector
-	input.normal = saturate(input.normal);
+	input.normal = normalize(input.normal);
 
 	// calc normalized direction to light
 	float3 normDirToLight = normalize(-directionalLight.direction);
@@ -46,5 +46,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// calc the amount with NDOT
 	float lightamount = saturate(dot(input.normal, normDirToLight));
 	
+	// Add directional light to ambient color
 	return directionalLight.diffuseColor * lightamount + directionalLight.ambientColor;
 }

@@ -73,7 +73,7 @@ void Game::Init()
 	// Initialize the directional light
 	directionalLight.ambientColor	= XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
 	directionalLight.diffuseColor	= XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	directionalLight.direction		= XMFLOAT3(1.f, -1.f, 0.f);
+	directionalLight.direction		= XMFLOAT3(1.f, -1.f, 1.f);
 
 	// Start off prev mouse position in center of screen so first delta isn't massive
 	prevMousePos.x = width/2;
