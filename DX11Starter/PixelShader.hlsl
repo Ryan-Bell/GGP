@@ -8,6 +8,7 @@ struct DirectionalLight
 cbuffer externalData : register(b0)
 {
 	DirectionalLight directionalLight;
+	DirectionalLight directionalLight2;
 };
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -26,6 +27,16 @@ struct VertexToPixel
 	float3 normal		: NORMAL;
 };
 
+float4 getColor(float3 normal, DirectionalLight light) {
+	// calc normalized direction to light
+	float3 normDirToLight = normalize(-light.direction);
+
+	// calc the amount with NDOT
+	float lightamount = saturate(dot(normal, normDirToLight));
+
+	// Add directional light to ambient color
+	return light.diffuseColor * lightamount + light.ambientColor;
+}
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
 // 
@@ -39,13 +50,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 {
 	// normalize normal vector
 	input.normal = normalize(input.normal);
+	float4 dir1 = getColor(input.normal, directionalLight);
+	float4 dir2 = getColor(input.normal, directionalLight2);
 
-	// calc normalized direction to light
-	float3 normDirToLight = normalize(-directionalLight.direction);
-	
-	// calc the amount with NDOT
-	float lightamount = saturate(dot(input.normal, normDirToLight));
-	
-	// Add directional light to ambient color
-	return directionalLight.diffuseColor * lightamount + directionalLight.ambientColor;
+	return dir1 + dir2;	
 }

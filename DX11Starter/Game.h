@@ -47,15 +47,12 @@ private:
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 
-	// Keeps track of the old mouse position.  Useful for 
-	// determining how far the mouse moved in a single frame.
-	POINT prevMousePos;
-
 	BasicGeometry basicGeometry;
 	Material* material;
 	Entity** entities;
 	Camera* camera;
 
 	DirectionalLight directionalLight;
+	DirectionalLight directionalLight2;
 };
 

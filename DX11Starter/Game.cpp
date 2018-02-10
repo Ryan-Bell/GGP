@@ -75,9 +75,10 @@ void Game::Init()
 	directionalLight.diffuseColor	= XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 	directionalLight.direction		= XMFLOAT3(1.f, -1.f, 1.f);
 
-	// Start off prev mouse position in center of screen so first delta isn't massive
-	prevMousePos.x = width/2;
-	prevMousePos.y = height/2;
+	directionalLight2.ambientColor	= XMFLOAT4(0.f, 0.f, 0.f, 1.0f);
+	directionalLight2.diffuseColor	= XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	directionalLight2.direction		= XMFLOAT3(1.f, 0.f, 0.f);
+
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -170,6 +171,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	//send light data to pixel shader
 	pixelShader->SetData("directionalLight", &directionalLight, sizeof(DirectionalLight));
+	pixelShader->SetData("directionalLight2", &directionalLight2, sizeof(DirectionalLight));
 	pixelShader->CopyAllBufferData();
 
 	// Set buffers in the input assembler
@@ -210,12 +212,6 @@ void Game::Draw(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
-
-	// Save the previous mouse position, so we have it for the future
-	prevMousePos.x = x;
-	prevMousePos.y = y;
-
 	// Caputure the mouse so we keep getting mouse move
 	// events even if the mouse leaves the window.  we'll be
 	// releasing the capture once a mouse button is released
@@ -227,8 +223,6 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
-
 	// We don't care about the tracking the cursor outside
 	// the window anymore (we're not dragging if the mouse is up)
 	ReleaseCapture();
@@ -241,11 +235,20 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
-	camera->OnMouseMove(prevMousePos.x, prevMousePos.y, x, y);
-	// Save the previous mouse position, so we have it for the future
-	prevMousePos.x = x;
-	prevMousePos.y = y;
+	RECT clientRect;
+	SetRect(&clientRect, 0, 0, width, height);
+
+	RECT desktopRect;
+	GetClientRect(GetDesktopWindow(), &desktopRect);
+	int centeredX = (desktopRect.right / 2) - (clientRect.right / 2);
+	int centeredY = (desktopRect.bottom / 2) - (clientRect.bottom / 2);
+	
+	POINT point;
+	GetCursorPos(&point);
+
+	camera->OnMouseMove(desktopRect.right / 2, desktopRect.bottom / 2, point.x, point.y);
+
+	SetCursorPos(desktopRect.right / 2, desktopRect.bottom / 2);
 }
 
 // --------------------------------------------------------

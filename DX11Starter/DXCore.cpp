@@ -91,7 +91,7 @@ HRESULT DXCore::InitWindow()
 	wndClass.cbWndExtra		= 0;
 	wndClass.hInstance		= hInstance;						// Our app's handle
 	wndClass.hIcon			= LoadIcon(NULL, IDI_APPLICATION);	// Default icon
-	wndClass.hCursor		= LoadCursor(NULL, IDC_ARROW);		// Default arrow cursor
+	wndClass.hCursor		= LoadCursor(NULL, IDC_CROSS);		// Default arrow cursor
 	wndClass.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndClass.lpszMenuName	= NULL;
 	wndClass.lpszClassName	= "Direct3DWindowClass";
@@ -116,13 +116,14 @@ HRESULT DXCore::InitWindow()
 		&clientRect,
 		WS_OVERLAPPEDWINDOW,	// Has a title bar, border, min and max buttons, etc.
 		false);					// No menu bar
-
+	
 	// Center the window to the screen
 	RECT desktopRect;
 	GetClientRect(GetDesktopWindow(), &desktopRect);
 	int centeredX = (desktopRect.right / 2) - (clientRect.right / 2);
 	int centeredY = (desktopRect.bottom / 2) - (clientRect.bottom / 2);
-
+	
+	
 	// Actually ask Windows to create the window itself
 	// using our settings so far.  This will return the
 	// handle of the window, which we'll keep around for later
