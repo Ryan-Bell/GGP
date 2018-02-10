@@ -65,12 +65,17 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	// Helper methods for loading shaders, creating some basic
-	// geometry to draw and some simple camera matrices.
-	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
 	CreateBasicGeometry();
+
 	camera = new Camera(width, height);
+
+	// Initialize the directional light
+	directionalLight.ambientColor	= XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	directionalLight.diffuseColor	= XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	directionalLight.direction		= XMFLOAT3(1.f, -1.f, 0.f);
+
+	// Start off prev mouse position in center of screen so first delta isn't massive
 	prevMousePos.x = width/2;
 	prevMousePos.y = height/2;
 
@@ -96,7 +101,7 @@ void Game::LoadShaders()
 }
 
 // --------------------------------------------------------
-// Creates the geometry we're going to draw - a single triangle for now
+// Loads the objs as meshes and stores pointers in a struct
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
@@ -115,9 +120,8 @@ void Game::CreateBasicGeometry()
 
 	Mesh** basicGeoSubPointer = (Mesh**)&basicGeometry;
 	for (int i = 0; i < ENTITY_COUNT; i++) {
-		entities[i] = new Entity(*basicGeoSubPointer, material);
+		entities[i] = new Entity(*basicGeoSubPointer++, material);
 		entities[i]->SetPosition(-2.5f + i, 0, 0)->SetScale(0.5f, 0.5f, 0.5f); 
-		basicGeoSubPointer++;
 	}
 }
 
@@ -163,6 +167,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
+
+	//send light data to pixel shader
+	pixelShader->SetData("directionalLight", &directionalLight, sizeof(DirectionalLight));
+	pixelShader->CopyAllBufferData();
 
 	// Set buffers in the input assembler
 	//  - Do this ONCE PER OBJECT you're drawing, since each object might

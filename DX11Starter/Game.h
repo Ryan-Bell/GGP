@@ -6,6 +6,7 @@
 #include "Mesh.h"
 #include "Entity.h"
 #include "Camera.h"
+#include "Lights.h"
 
 struct BasicGeometry {
 	Mesh* cone;
@@ -54,5 +55,7 @@ private:
 	Material* material;
 	Entity** entities;
 	Camera* camera;
+
+	DirectionalLight directionalLight;
 };
 
