@@ -5,24 +5,23 @@ Camera::Camera(int width, int height)
 {
 	//Default values for camera positioning
 	DirectX::XMFLOAT3 position  = DirectX::XMFLOAT3(0, 0, -5);
-	DirectX::XMFLOAT3 direction = DirectX::XMFLOAT3(0, 0, +1);
 
-	init(width, height, position, direction);
+	init(width, height, position);
 }
 
-Camera::Camera(int width, int height, DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 direction)
+Camera::Camera(int width, int height, DirectX::XMFLOAT3 position)
 {
-	init(width, height, position, direction);
+	init(width, height, position);
 }
-void Camera::init(int width, int height, DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 direction) {
-	rotationx = 0;
-	rotationy = 0;
+void Camera::init(int width, int height, DirectX::XMFLOAT3 position) 
+{
+	rotationXRadians = 0;
+	rotationYRadians = 0;
 	this->position = position;
-	this->direction = direction;
 
-	CreateView(position, direction);
+	CreateView(DirectX::XMLoadFloat3(&position), DirectX::XMLoadFloat3(&FORWARD));
 	CreateProjection(width, height);
-	cameraSpeed = 3;
+	cameraMovementSpeed = 3;
 	cameraRotationSpeed = 0.002f;
 }
 Camera::~Camera() {}
@@ -44,7 +43,7 @@ void Camera::CreateProjection(int width, int height)
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
 }
 
-void Camera::CreateView(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir)
+void Camera::CreateView(DirectX::XMVECTOR pos, DirectX::XMVECTOR dir)
 {
 	// Create the View matrix
 	// - In an actual game, recreate this matrix every time the camera 
@@ -55,37 +54,17 @@ void Camera::CreateView(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir)
 	//    point in 3D space
 
 	DirectX::XMMATRIX V = DirectX::XMMatrixLookToLH(
-		DirectX::XMLoadFloat3(&pos),					// The position of the "camera"
-		DirectX::XMLoadFloat3(&dir),					// Direction the camera is looking
+		pos,											// The position of the "camera"
+		dir,											// Direction the camera is looking
 		DirectX::XMVectorSet(0, 1, 0, 0));				// "Up" direction in 3D space (prevents roll)
 	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(V)); // Transpose for HLSL!
 }
 #pragma endregion
 
-#pragma region Setters
-Camera * Camera::SetPosition(DirectX::XMFLOAT3 position)
-{
-	outdatedMatrix = true;
-	this->position = position;
-	return this;
-}
-
-Camera * Camera::SetDirection(DirectX::XMFLOAT3 direction)
-{
-	outdatedMatrix = true;
-	this->direction = direction;
-	return this;
-}
-#pragma endregion
-
-#pragma region Getters
+#pragma region Getters/Setters
 DirectX::XMFLOAT3 Camera::GetPosition()
 {
 	return position;
-}
-DirectX::XMFLOAT3 Camera::GetDirection()
-{
-	return direction;
 }
 DirectX::XMFLOAT4X4 Camera::GetViewMatrix()
 {
@@ -96,21 +75,26 @@ DirectX::XMFLOAT4X4 Camera::GetProjectionMatrix()
 {
 	return projectionMatrix;
 }
+Camera * Camera::SetPosition(DirectX::XMFLOAT3 position)
+{
+	outdatedMatrix = true;
+	this->position = position;
+	return this;
+}
 #pragma endregion
 
 Camera * Camera::Update(float deltaTime, float totalTime)
 {
-	DirectX::XMVECTOR rot = DirectX::XMQuaternionRotationRollPitchYaw(rotationy, rotationx, 0);
+	DirectX::XMVECTOR rot = DirectX::XMQuaternionRotationRollPitchYaw(rotationYRadians, rotationXRadians, 0);
 
 	DirectX::XMVECTOR dir = DirectX::XMVectorSet(0, 0, 1, 0);
 	
 	DirectX::XMVECTOR cameraDirectionVector = DirectX::XMVector3Rotate(dir, rot);
-	DirectX::XMStoreFloat3(&direction, cameraDirectionVector);
-	//DirectX::XMVECTOR cameraDirectionVector = DirectX::XMLoadFloat3(&cameraDirection);
+
 	cameraDirectionVector = DirectX::XMVector4Normalize(cameraDirectionVector);
 	DirectX::XMVECTOR cameraDirectionLeftVector = DirectX::XMVector3Cross(cameraDirectionVector, DirectX::XMVectorSet(0, 1, 0, 0));
 
-	float scale = deltaTime * cameraSpeed;
+	float scale = deltaTime * cameraMovementSpeed;
 	cameraDirectionVector = DirectX::XMVectorScale(cameraDirectionVector, scale);
 	cameraDirectionLeftVector = DirectX::XMVectorScale(cameraDirectionLeftVector, scale);
 
@@ -137,33 +121,31 @@ Camera * Camera::Update(float deltaTime, float totalTime)
 	}
 	//Movement up and down in world coords
 	if (GetAsyncKeyState('Q') & 0x8000) {
-		position.y -= deltaTime * cameraSpeed;
+		position.y -= deltaTime * cameraMovementSpeed;
 		outdatedMatrix = true;
 	}
 	if (GetAsyncKeyState('E') & 0x8000) {
-		position.y += deltaTime * cameraSpeed;
+		position.y += deltaTime * cameraMovementSpeed;
 		outdatedMatrix = true;
 	}
 	
 	if (outdatedMatrix) {
-		CreateView(this->position, this->direction);
+		CreateView(DirectX::XMLoadFloat3(&this->position), cameraDirectionVector);
 	}
 	return this;
 }
 
-Camera* Camera::OnMouseMove(int prex, int prey, int x, int y) {
-	float deltax = (float)x - prex;
-	float deltay = (float)y - prey;
-	deltax *= cameraRotationSpeed;
-	deltay *= cameraRotationSpeed;
+Camera* Camera::OnMouseMove(int previousX, int previousY, int x, int y) {
+	// The pixel position change in the mouse since the last call
+	int deltaX = x - previousX;
+	int deltaY = y - previousY;
 
-	rotationx += deltax;
-	rotationy += deltay;
-
-	const int BOUNDS = 70;
-	rotationx = min(max(rotationx, -BOUNDS), BOUNDS);
-	rotationy = min(max(rotationy, -BOUNDS), BOUNDS);
+	rotationXRadians += deltaX * cameraRotationSpeed;
+	rotationYRadians += deltaY * cameraRotationSpeed;
+	
+	// Clamp the pitch to prevent flipping upside-down
+	const float BOUNDS = DirectX::XMConvertToRadians(170);
+	rotationYRadians = min(max(rotationYRadians, -BOUNDS), BOUNDS);
 
 	return this;
 }
-

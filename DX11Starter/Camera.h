@@ -6,38 +6,35 @@ class Camera {
 public:
 	// Contruct/Destruct
 	Camera(int width, int height);
-	Camera(int width, int height, DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 direction);
+	Camera(int width, int height, DirectX::XMFLOAT3 position);
 	~Camera();
-	void init(int width, int height, DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 direction);
+	void init(int width, int height, DirectX::XMFLOAT3 position);
 
 	// Getters/Setters
-	Camera* SetPosition(DirectX::XMFLOAT3 position);
-	Camera* SetDirection(DirectX::XMFLOAT3 direction);
-
-	DirectX::XMFLOAT3 GetPosition();
-	DirectX::XMFLOAT3 GetDirection();
-	
-	Camera* Update(float deltaTime, float totalTime);
-	Camera* OnMouseMove(int prex, int prey, int x, int y);
+	DirectX::XMFLOAT3   GetPosition();
 	DirectX::XMFLOAT4X4 GetViewMatrix();
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
 
-	float cameraSpeed;
+	Camera* SetPosition(DirectX::XMFLOAT3 position);
+	
+	Camera* Update(float deltaTime, float totalTime);
+	Camera* OnMouseMove(int prex, int prey, int x, int y);
+
+	float cameraMovementSpeed;
 	float cameraRotationSpeed;
-	float rotationx;
-	float rotationy;
+	float rotationXRadians;
+	float rotationYRadians;
 
 	void CreateProjection(int width, int height);
 private:
-	void CreateView(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 dir);
+	void CreateView(DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
 
 	// Internal Data
 	DirectX::XMFLOAT3 position;
-	DirectX::XMFLOAT3 direction;
 	bool outdatedMatrix;
+	const DirectX::XMFLOAT3 FORWARD = DirectX::XMFLOAT3(0, 0, 1);
 
 	// The matrices to go from model space to screen space
-	//DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT4X4 viewMatrix;
 	DirectX::XMFLOAT4X4 projectionMatrix;
 }; 
