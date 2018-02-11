@@ -1,25 +1,27 @@
 #include "Camera.h"
 
+using namespace DirectX;
+
 #pragma region Construct/Destruct
 Camera::Camera(int width, int height)
 {
 	//Default values for camera positioning
-	DirectX::XMFLOAT3 position  = DirectX::XMFLOAT3(0, 0, -5);
+	XMFLOAT3 position  = XMFLOAT3(0, 0, -5);
 
 	init(width, height, position);
 }
 
-Camera::Camera(int width, int height, DirectX::XMFLOAT3 position)
+Camera::Camera(int width, int height, XMFLOAT3 position)
 {
 	init(width, height, position);
 }
-void Camera::init(int width, int height, DirectX::XMFLOAT3 position) 
+void Camera::init(int width, int height, XMFLOAT3 position) 
 {
 	rotationXRadians = 0;
 	rotationYRadians = 0;
 	this->position = position;
 
-	CreateView(DirectX::XMLoadFloat3(&position), DirectX::XMLoadFloat3(&FORWARD));
+	CreateView(XMLoadFloat3(&position), XMLoadFloat3(&FORWARD));
 	CreateProjection(width, height);
 	cameraMovementSpeed = 3;
 	cameraRotationSpeed = 0.002f;
@@ -35,7 +37,7 @@ Camera::~Camera() {}
 void Camera::CreateProjection(int width, int height)
 {
 	// Update our projection matrix since the window size changed
-	DirectX::XMMATRIX P = DirectX::XMMatrixPerspectiveFovLH(
+	XMMATRIX P = XMMatrixPerspectiveFovLH(
 		0.25f * 3.1415926535f,	// Field of View Angle
 		(float)width / height,	// Aspect ratio
 		0.1f,				  	// Near clip plane distance
@@ -43,7 +45,7 @@ void Camera::CreateProjection(int width, int height)
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
 }
 
-void Camera::CreateView(DirectX::XMVECTOR pos, DirectX::XMVECTOR dir)
+void Camera::CreateView(XMVECTOR pos, XMVECTOR dir)
 {
 	// Create the View matrix
 	// - In an actual game, recreate this matrix every time the camera 
@@ -53,29 +55,29 @@ void Camera::CreateView(DirectX::XMVECTOR pos, DirectX::XMVECTOR dir)
 	// - Another option is the LOOK AT function, to look towards a specific
 	//    point in 3D space
 
-	DirectX::XMMATRIX V = DirectX::XMMatrixLookToLH(
+	XMMATRIX V = XMMatrixLookToLH(
 		pos,											// The position of the "camera"
 		dir,											// Direction the camera is looking
-		DirectX::XMVectorSet(0, 1, 0, 0));				// "Up" direction in 3D space (prevents roll)
+		XMVectorSet(0, 1, 0, 0));				// "Up" direction in 3D space (prevents roll)
 	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(V)); // Transpose for HLSL!
 }
 #pragma endregion
 
 #pragma region Getters/Setters
-DirectX::XMFLOAT3 Camera::GetPosition()
+XMFLOAT3 Camera::GetPosition()
 {
 	return position;
 }
-DirectX::XMFLOAT4X4 Camera::GetViewMatrix()
+XMFLOAT4X4 Camera::GetViewMatrix()
 {
 	return viewMatrix;
 }
 
-DirectX::XMFLOAT4X4 Camera::GetProjectionMatrix()
+XMFLOAT4X4 Camera::GetProjectionMatrix()
 {
 	return projectionMatrix;
 }
-Camera * Camera::SetPosition(DirectX::XMFLOAT3 position)
+Camera * Camera::SetPosition(XMFLOAT3 position)
 {
 	outdatedMatrix = true;
 	this->position = position;
@@ -85,38 +87,38 @@ Camera * Camera::SetPosition(DirectX::XMFLOAT3 position)
 
 Camera * Camera::Update(float deltaTime, float totalTime)
 {
-	DirectX::XMVECTOR rot = DirectX::XMQuaternionRotationRollPitchYaw(rotationYRadians, rotationXRadians, 0);
+	XMVECTOR rot = XMQuaternionRotationRollPitchYaw(rotationYRadians, rotationXRadians, 0);
 
-	DirectX::XMVECTOR dir = DirectX::XMVectorSet(0, 0, 1, 0);
+	XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
 	
-	DirectX::XMVECTOR cameraDirectionVector = DirectX::XMVector3Rotate(dir, rot);
+	XMVECTOR cameraDirectionVector = XMVector3Rotate(dir, rot);
 
-	cameraDirectionVector = DirectX::XMVector4Normalize(cameraDirectionVector);
-	DirectX::XMVECTOR cameraDirectionLeftVector = DirectX::XMVector3Cross(cameraDirectionVector, DirectX::XMVectorSet(0, 1, 0, 0));
+	cameraDirectionVector = XMVector4Normalize(cameraDirectionVector);
+	XMVECTOR cameraDirectionLeftVector = XMVector3Cross(cameraDirectionVector, XMVectorSet(0, 1, 0, 0));
 
 	float scale = deltaTime * cameraMovementSpeed;
-	cameraDirectionVector = DirectX::XMVectorScale(cameraDirectionVector, scale);
-	cameraDirectionLeftVector = DirectX::XMVectorScale(cameraDirectionLeftVector, scale);
+	cameraDirectionVector = XMVectorScale(cameraDirectionVector, scale);
+	cameraDirectionLeftVector = XMVectorScale(cameraDirectionLeftVector, scale);
 
-	DirectX::XMVECTOR cameraPositionVector = DirectX::XMLoadFloat3(&position);
+	XMVECTOR cameraPositionVector = XMLoadFloat3(&position);
 
 	//Movement forward and back along direction vector
 	if (GetAsyncKeyState('W') & 0x8000) {
-		DirectX::XMStoreFloat3(&position, DirectX::XMVectorAdd(cameraPositionVector, cameraDirectionVector));
+		XMStoreFloat3(&position, XMVectorAdd(cameraPositionVector, cameraDirectionVector));
 		outdatedMatrix = true;
 	}
 	if (GetAsyncKeyState('S') & 0x8000) {
-		DirectX::XMStoreFloat3(&position, DirectX::XMVectorSubtract(cameraPositionVector, cameraDirectionVector));
+		XMStoreFloat3(&position, XMVectorSubtract(cameraPositionVector, cameraDirectionVector));
 		outdatedMatrix = true;
 	}
 
 	//Movement left and right based on direction vector
 	if (GetAsyncKeyState('A') & 0x8000) {
-		DirectX::XMStoreFloat3(&position, DirectX::XMVectorAdd(cameraPositionVector, cameraDirectionLeftVector));
+		XMStoreFloat3(&position, XMVectorAdd(cameraPositionVector, cameraDirectionLeftVector));
 		outdatedMatrix = true;
 	}
 	if (GetAsyncKeyState('D') & 0x8000) {
-		DirectX::XMStoreFloat3(&position, DirectX::XMVectorSubtract(cameraPositionVector, cameraDirectionLeftVector));
+		XMStoreFloat3(&position, XMVectorSubtract(cameraPositionVector, cameraDirectionLeftVector));
 		outdatedMatrix = true;
 	}
 	//Movement up and down in world coords
@@ -130,7 +132,7 @@ Camera * Camera::Update(float deltaTime, float totalTime)
 	}
 	
 	if (outdatedMatrix) {
-		CreateView(DirectX::XMLoadFloat3(&this->position), cameraDirectionVector);
+		CreateView(XMLoadFloat3(&this->position), cameraDirectionVector);
 	}
 	return this;
 }
@@ -144,7 +146,7 @@ Camera* Camera::OnMouseMove(int previousX, int previousY, int x, int y) {
 	rotationYRadians += deltaY * cameraRotationSpeed;
 	
 	// Clamp the pitch to prevent flipping upside-down
-	const float BOUNDS = DirectX::XMConvertToRadians(170);
+	const float BOUNDS = XMConvertToRadians(170);
 	rotationYRadians = min(max(rotationYRadians, -BOUNDS), BOUNDS);
 
 	return this;
