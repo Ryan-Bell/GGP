@@ -85,13 +85,13 @@ Camera * Camera::SetPosition(XMFLOAT3 position)
 }
 #pragma endregion
 
+
+//TODO: movemenet code should be placed in different methods like MoveForward and called from outside
 Camera * Camera::Update(float deltaTime, float totalTime)
 {
 	XMVECTOR rot = XMQuaternionRotationRollPitchYaw(rotationYRadians, rotationXRadians, 0);
-
-	XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
 	
-	XMVECTOR cameraDirectionVector = XMVector3Rotate(dir, rot);
+	XMVECTOR cameraDirectionVector = XMVector3Rotate(XMLoadFloat3(&FORWARD), rot);
 
 	cameraDirectionVector = XMVector4Normalize(cameraDirectionVector);
 	XMVECTOR cameraDirectionLeftVector = XMVector3Cross(cameraDirectionVector, XMVectorSet(0, 1, 0, 0));

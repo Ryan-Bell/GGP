@@ -67,6 +67,7 @@ void Game::Init()
 {
 	LoadShaders();
 	CreateBasicGeometry();
+	LoadTextures();
 
 	camera = new Camera(width, height);
 
@@ -117,13 +118,29 @@ void Game::CreateBasicGeometry()
 	const int ENTITY_COUNT = 6;
 	entities = (Entity**)malloc(sizeof(Entity*) * ENTITY_COUNT);
 	
-	material = new Material(vertexShader, pixelShader);
+	ID3D11ShaderResourceView* shaderResourceView;
+	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/grid.png", 0, &shaderResourceView);
+
+	ID3D11SamplerState* samplerState;
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&samplerDesc, &samplerState);
+
+	material = new Material(vertexShader, pixelShader, shaderResourceView, samplerState);
 
 	Mesh** basicGeoSubPointer = (Mesh**)&basicGeometry;
 	for (int i = 0; i < ENTITY_COUNT; i++) {
 		entities[i] = new Entity(*basicGeoSubPointer++, material);
 		entities[i]->SetPosition(-2.5f + i, 0, 0)->SetScale(0.5f, 0.5f, 0.5f); 
 	}
+}
+
+void Game::LoadTextures() {
+	//TODO
 }
 
 

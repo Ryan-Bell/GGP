@@ -113,6 +113,12 @@ Entity * Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMat
 	//  - If you skip this, the "SetMatrix" calls above won't make it to the GPU!
 	vertexShader->CopyAllBufferData();
 
+	pixelShader->SetSamplerState("basicSampler", material->samplerState);
+	pixelShader->SetShaderResourceView("diffuseTexture", material->shaderResourceView);
+
+	//TODO is this needed for the ss and srv?
+	pixelShader->CopyAllBufferData();
+
 	return this;
 }
 

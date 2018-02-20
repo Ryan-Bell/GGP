@@ -1,3 +1,6 @@
+Texture2D diffuseTexture	:	register(t0);
+SamplerState basicSampler	:	register(s0);
+
 struct DirectionalLight
 {
 	float4 ambientColor;
@@ -25,6 +28,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
+	float2 uv			: TEXCOORD;
 };
 
 float4 getColor(float3 normal, DirectionalLight light) {
@@ -52,6 +56,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	input.normal = normalize(input.normal);
 	float4 dir1 = getColor(input.normal, directionalLight);
 	float4 dir2 = getColor(input.normal, directionalLight2);
-
-	return dir1 + dir2;	
+	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
+	
+	return (dir1 + dir2) * surfaceColor;	
 }

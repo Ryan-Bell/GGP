@@ -7,6 +7,7 @@
 #include "Entity.h"
 #include "Camera.h"
 #include "Lights.h"
+#include "WICTextureLoader.h"
 
 struct BasicGeometry {
 	Mesh* cone;
@@ -42,6 +43,7 @@ private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders();
 	void CreateBasicGeometry();
+	void LoadTextures();
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
