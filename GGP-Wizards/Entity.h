@@ -1,10 +1,11 @@
 #pragma once
 #include "DXCore.h"
+#include "Object.h"
 #include <DirectXMath.h>
 #include "Mesh.h"
 #include "Material.h"
 //TODO ? should there be an option to force sets to calculate immediately
-class Entity
+class Entity : public Object
 {
 public:
 	Entity(Mesh* mesh, Material* material);
@@ -15,6 +16,7 @@ public:
 	DirectX::XMFLOAT3 GetScale();
 	DirectX::XMFLOAT3 GetRotation();
 
+	// returning Entity* (this) allows chaining methods ( obj->do1()->do2() )
 	Entity* SetPosition(DirectX::XMFLOAT3 position);
 	Entity* SetScale(DirectX::XMFLOAT3 scale);
 	Entity* SetRotation(DirectX::XMFLOAT3 rotation);

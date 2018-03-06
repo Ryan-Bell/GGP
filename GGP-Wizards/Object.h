@@ -1,9 +1,9 @@
 #pragma once
 class Object {
-public:
+private:
 	static int nextInstanceId;
 	int instanceId;
-private:
+public:
 	Object();
 	~Object();
 	
