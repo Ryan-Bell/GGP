@@ -91,7 +91,7 @@ HRESULT DXCore::InitWindow()
 	wndClass.cbWndExtra		= 0;
 	wndClass.hInstance		= hInstance;						// Our app's handle
 	wndClass.hIcon			= LoadIcon(NULL, IDI_APPLICATION);	// Default icon
-	wndClass.hCursor		= LoadCursor(NULL, IDC_CROSS);		// Default arrow cursor
+	wndClass.hCursor		= LoadCursor(NULL, IDC_CROSS);
 	wndClass.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndClass.lpszMenuName	= NULL;
 	wndClass.lpszClassName	= "Direct3DWindowClass";
