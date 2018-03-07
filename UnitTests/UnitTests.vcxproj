@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{064FAD7E-87C7-4D75-8901-100AD18ADD1E}</ProjectGuid>
+    <ProjectGuid>{21038C4C-D1C5-46E4-B6C5-B17FF9CE39AF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>UnitTests</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
@@ -162,10 +162,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Object_Test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DX11Starter\DX11Starter.vcxproj">
+    <ProjectReference Include="..\GGP-Wizards\GGP-Wizards.vcxproj">
       <Project>{ee668f6a-773c-44fd-acee-26f997af51e2}</Project>
     </ProjectReference>
   </ItemGroup>
