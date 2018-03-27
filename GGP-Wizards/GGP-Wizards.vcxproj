@@ -113,6 +113,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CenteredSound.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="DXCore.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -122,9 +123,12 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
+    <ClCompile Include="SpatialSound.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CenteredSound.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="GameObject.h" />
@@ -134,6 +138,8 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="SimpleShader.h" />
+    <ClInclude Include="SoundManager.h" />
+    <ClInclude Include="SpatialSound.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>

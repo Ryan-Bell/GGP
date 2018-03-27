@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include "Material.h"
 //TODO ? should there be an option to force sets to calculate immediately
+//TODO ? should there be a transform class
 class GameObject : public Object
 {
 public:
