@@ -4,7 +4,7 @@
 #include "SimpleShader.h"
 #include <DirectXMath.h>
 #include "Mesh.h"
-#include "Entity.h"
+#include "GameObject.h"
 #include "Camera.h"
 #include "Lights.h"
 #include "WICTextureLoader.h"
@@ -51,7 +51,7 @@ private:
 
 	BasicGeometry basicGeometry;
 	Material* material;
-	Entity** entities;
+	GameObject** gameObjects;
 	Camera* camera;
 
 	DirectionalLight directionalLight;

@@ -54,9 +54,9 @@ Game::~Game()
 	delete basicGeometry.torus;
 
 	for (int i = 0; i < 6; i++) {
-		delete entities[i];
+		delete gameObjects[i];
 	}
-	free(entities);
+	free(gameObjects);
 }
 
 // --------------------------------------------------------
@@ -115,9 +115,19 @@ void Game::CreateBasicGeometry()
 	basicGeometry.sphere	= new Mesh("../../Assets/Models/sphere.obj",	device);
 	basicGeometry.torus		= new Mesh("../../Assets/Models/torus.obj",		device);
 
-	const int ENTITY_COUNT = 6;
-	entities = (Entity**)malloc(sizeof(Entity*) * ENTITY_COUNT);
+	const int GAMEOBJECT_COUNT = 6;
+	gameObjects = (GameObject**)malloc(sizeof(GameObject*) * GAMEOBJECT_COUNT);
 	
+
+	Mesh** basicGeoSubPointer = (Mesh**)&basicGeometry;
+	for (int i = 0; i < GAMEOBJECT_COUNT; i++) {
+		gameObjects[i] = new GameObject(*basicGeoSubPointer++, nullptr);
+		gameObjects[i]->SetPosition(-2.5f + i, 0, 0)->SetScale(0.5f, 0.5f, 0.5f); 
+	}
+}
+
+void Game::LoadTextures() {
+
 	ID3D11ShaderResourceView* shaderResourceView;
 	CreateWICTextureFromFile(device, context, L"../../Assets/Textures/grid.png", 0, &shaderResourceView);
 
@@ -132,15 +142,10 @@ void Game::CreateBasicGeometry()
 
 	material = new Material(vertexShader, pixelShader, shaderResourceView, samplerState);
 
-	Mesh** basicGeoSubPointer = (Mesh**)&basicGeometry;
-	for (int i = 0; i < ENTITY_COUNT; i++) {
-		entities[i] = new Entity(*basicGeoSubPointer++, material);
-		entities[i]->SetPosition(-2.5f + i, 0, 0)->SetScale(0.5f, 0.5f, 0.5f); 
+	const int GAMEOBJECT_COUNT = 6;
+	for (int i = 0; i < GAMEOBJECT_COUNT; i++) {
+		gameObjects[i]->material = material;
 	}
-}
-
-void Game::LoadTextures() {
-	//TODO
 }
 
 
@@ -197,9 +202,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	for (int i = 5; i >= 0; i--) {
-		entities[i]->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix());
-		context->IASetVertexBuffers(0, 1, entities[i]->mesh->GetVertexBufferAddress(), &stride, &offset);
-		context->IASetIndexBuffer(entities[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		gameObjects[i]->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix());
+		context->IASetVertexBuffers(0, 1, gameObjects[i]->mesh->GetVertexBufferAddress(), &stride, &offset);
+		context->IASetIndexBuffer(gameObjects[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		// Finally do the actual drawing
 		//  - Do this ONCE PER OBJECT you intend to draw
@@ -207,7 +212,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 		//     vertices in the currently set VERTEX BUFFER
 		context->DrawIndexed(
-			entities[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			gameObjects[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 

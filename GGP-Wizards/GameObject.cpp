@@ -1,8 +1,8 @@
-#include "Entity.h"
+#include "GameObject.h"
 
 using namespace DirectX;
 
-Entity::Entity(Mesh* mesh, Material* material)
+GameObject::GameObject(Mesh* mesh, Material* material)
 {
 	this->mesh = mesh;
 	this->material = material;
@@ -12,60 +12,60 @@ Entity::Entity(Mesh* mesh, Material* material)
 	CalculateWorldMatrix();
 }
 
-Entity::~Entity() {}
+GameObject::~GameObject() {}
 
-XMFLOAT3 Entity::GetPosition()
+XMFLOAT3 GameObject::GetPosition()
 {
 	return position;
 }
 
-XMFLOAT3 Entity::GetScale()
+XMFLOAT3 GameObject::GetScale()
 {
 	return scale;
 }
 
-XMFLOAT3 Entity::GetRotation()
+XMFLOAT3 GameObject::GetRotation()
 {
 	return rotation;
 }
 
-Entity * Entity::SetPosition(XMFLOAT3 position)
+GameObject * GameObject::SetPosition(XMFLOAT3 position)
 {
 	outdatedMatrix = true;
 	this->position = position;
 	return this;
 }
 
-Entity * Entity::SetScale(XMFLOAT3 scale)
+GameObject * GameObject::SetScale(XMFLOAT3 scale)
 {
 	outdatedMatrix = true;
 	this->scale = scale;
 	return this;
 }
 
-Entity * Entity::SetRotation(XMFLOAT3 rotation)
+GameObject * GameObject::SetRotation(XMFLOAT3 rotation)
 {
 	outdatedMatrix = true;
 	this->rotation = rotation;
 	return this;
 }
 
-Entity * Entity::SetPosition(float x, float y, float z)
+GameObject * GameObject::SetPosition(float x, float y, float z)
 {
 	return SetPosition(XMFLOAT3(x, y, z));
 }
 
-Entity * Entity::SetScale(float x, float y, float z)
+GameObject * GameObject::SetScale(float x, float y, float z)
 {
 	return SetScale(XMFLOAT3(x, y, z));
 }
 
-Entity * Entity::SetRotation(float x, float y, float z)
+GameObject * GameObject::SetRotation(float x, float y, float z)
 {
 	return SetRotation(XMFLOAT3(x, y, z));
 }
 
-Entity * Entity::Move(XMFLOAT3 movement)
+GameObject * GameObject::Move(XMFLOAT3 movement)
 {
 	//TODO should this also be delayed until world mat calc?
 	XMStoreFloat3(&position, XMVectorAdd(
@@ -75,27 +75,25 @@ Entity * Entity::Move(XMFLOAT3 movement)
 	return this;
 }
 
-Entity * Entity::Move(float x, float y, float z)
+GameObject * GameObject::Move(float x, float y, float z)
 {
 	return Move(XMFLOAT3(x, y, z));
 }
 
-Entity * Entity::MoveForward(float distance)
+GameObject * GameObject::MoveForward(float distance)
 {
 	//TODO
 	return this;
 }
 
-Entity * Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
+GameObject * GameObject::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 {
-
-
 	// Set the vertex and pixel shaders to use for the next Draw() command
 	//  - These don't technically need to be set every frame...YET
 	//  - Once you start applying different shaders to different objects,
 	//    you'll need to swap the current shaders before each draw
 	SimpleVertexShader* vertexShader = material->GetVertexShader();
-	SimplePixelShader* pixelShader = material->GetPixelShader();
+	SimplePixelShader*  pixelShader  = material->GetPixelShader();
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 
@@ -122,7 +120,7 @@ Entity * Entity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMat
 	return this;
 }
 
-XMFLOAT4X4 Entity::GetWorldMatrix()
+XMFLOAT4X4 GameObject::GetWorldMatrix()
 {
 	if (outdatedMatrix) {
 		CalculateWorldMatrix();
@@ -131,7 +129,7 @@ XMFLOAT4X4 Entity::GetWorldMatrix()
 	return worldMatrix;
 }
 
-void Entity::CalculateWorldMatrix()
+void GameObject::CalculateWorldMatrix()
 {
 	XMMATRIX tr = XMMatrixTranslation(position.x, position.y, position.z);
 	XMMATRIX ro = XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
